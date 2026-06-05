@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PROSTARM – TRC Login</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0efe9;color:#1a1a18;min-height:100vh;display:flex;align-items:center;justify-content:center;}
+#login-container { width: 100%; display: flex; justify-content: center; padding: 20px; }
+.login-card { background: #fff; border: 1px solid #e8e6e0; border-radius: 12px; padding: 2.5rem 2rem; width: 100%; max-width: 400px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; }
+.login-subtitle { font-size: 13px; color: #888780; margin-bottom: 25px; }
+.login-input { width: 100%; padding: 12px 14px; margin-bottom: 15px; border: 1px solid #d3d1c7; border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.2s; }
+.login-input:focus { border-color: #1D9E75; }
+.login-btn { width: 100%; padding: 12px; background: #1D9E75; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+.login-btn:hover { background: #157a5a; }
+.login-btn:disabled { background: #888780; cursor: not-allowed; }
+</style>
+</head>
+<body>
+
+<div id="login-container">
+  <form class="login-card" onsubmit="doLogin(event)">
+    <div style="margin-bottom: 20px;">
+      <img src="logo.png" alt="PROSTARM TRC" style="height: 55px; max-width: 100%; object-fit: contain;">
+    </div>
+    <p class="login-subtitle">Please sign in to access the secure dashboard</p>
+    
+    <input type="email" id="login-email" class="login-input" placeholder="Email Address" required>
+    <input type="password" id="login-password" class="login-input" placeholder="Password" required>
+    
+    <button type="submit" class="login-btn" id="login-btn">Secure Login</button>
+  </form>
+</div>
+
+<script>
+function normEngineer(v){
+  var e = (v===null||v===undefined)?'':String(v).trim();
+  if(!e||e.toLowerCase()==='nan') return 'Unknown';
+  return e.split(' ').map(function(w){return w.charAt(0).toUpperCase()+w.slice(1).toLowerCase();}).join(' ');
+}
+
+// ⚠️ PASTE YOUR POWER AUTOMATE LOGIN URL HERE:
+const PA_LOGIN_URL = "https://default000090a2d8654861ba6937e8e47451.72.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/63bb066ad50d4838bc06cd52a0229e3f/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=RzygYBNuY3Lm4tggZqy2mnU649Wa1Lc26pr4L-nj7cU"; 
+
+async function doLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-password').value.trim();
+  const btn = document.getElementById('login-btn');
+  
+  if(!email || !pass) return alert("Please enter both email and password.");
+  
+  const emailLower = email.toLowerCase();
+  const isAdmin = emailLower.includes('admin') || emailLower.includes('manager') || emailLower.includes('boss');
+  let namePart = email.split('@')[0].replace(/[._]/g, ' ');
+  let formattedName = normEngineer(namePart);
+
+  // FALLBACK: If Power Automate is not set up
+  if(PA_LOGIN_URL === "YOUR_POWER_AUTOMATE_LOGIN_FLOW_URL" || PA_LOGIN_URL === "") {
+      if (isAdmin && pass !== 'Admin@2026') return alert("Invalid Admin Password. Access Denied.");
+      if (!isAdmin && pass !== 'Prostarm@123') return alert("Invalid Engineer Password. Access Denied.");
+      
+      sessionStorage.setItem('trc_user_name', formattedName);
+      sessionStorage.setItem('trc_role', isAdmin ? 'manager' : 'engineer');
+      window.location.href = 'dashboard.html';
+      return;
+  }
+
+  btn.innerText = "Verifying Credentials...";
+  btn.disabled = true;
+
+  try {
+      const response = await fetch(PA_LOGIN_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email, password: pass })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+          // STRICT SECURITY TRANSLATOR: Forces database role into 'manager' or 'engineer'
+          let rawRole = String(data.role || '').toLowerCase().trim();
+          let safeRole = (rawRole.includes('admin') || rawRole.includes('manager') || rawRole.includes('boss')) ? 'manager' : 'engineer';
+
+          sessionStorage.setItem('trc_user_name', data.name);
+          sessionStorage.setItem('trc_role', safeRole);
+          window.location.href = 'dashboard.html';
+      } else {
+          alert(data.message || "Invalid Email or Password. Access Denied.");
+          btn.innerText = "Secure Login";
+          btn.disabled = false;
+      }
+  } catch (error) {
+      console.error("Login Error:", error);
+      alert("Could not connect to the Authentication Database. Please ensure the Power Automate Flow is active.");
+      btn.innerText = "Secure Login";
+      btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>

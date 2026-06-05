@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PROSTARM – TRC Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0efe9;color:#1a1a18;min-height:100vh}
+
+/* ── Top bar ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;background:#1a1a18;padding:0 24px;gap:16px;flex-wrap:wrap;height:64px}
+.topbar-left{display:flex;align-items:center;gap:15px}
+.topbar-logo{height: 38px; background: #fff; padding: 4px 8px; border-radius: 6px; object-fit: contain;}
+.topbar-right{display:flex;align-items:center;gap:15px}
+.clock-block{text-align:right}
+.clock-date{font-size:11px;color:rgba(255,255,255,0.45);margin-bottom:1px;letter-spacing:0.02em}
+.clock-time{font-size:20px;font-weight:500;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:0.06em}
+
+/* ── Role Display & Topbar Buttons ── */
+.role-display{padding:6px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.22); background:#333; color:#fff; font-size:12px; font-weight: 500; user-select:none;}
+.user-input{padding:6px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.22); background:#333; color:#fff; font-size:12px; font-weight:500; outline:none; display:none; min-width: 120px; text-align: center; cursor: default;}
+
+.upload-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border:1px solid rgba(255,255,255,0.22);border-radius:8px;background:transparent;cursor:pointer;font-size:12px;font-weight:500;color:#fff;white-space:nowrap;transition:background 0.15s}
+.upload-btn:hover{background:rgba(255,255,255,0.1)}
+input[type=file]{display:none}
+
+.logout-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border:1px solid rgba(230,57,70,0.5);border-radius:8px;background:transparent;cursor:pointer;font-size:12px;font-weight:500;color:#E63946;white-space:nowrap;transition:background 0.15s}
+.logout-btn:hover{background:rgba(230,57,70,0.1); border-color:#E63946;}
+
+/* ── Loading Overlay ── */
+#loading-overlay { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; color: white; flex-direction: column; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; }
+.spinner { border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid #1D9E75; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+/* ── Main ── */
+.main{padding:1.25rem 1.5rem}
+
+/* ── Form ── */
+.form-card{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem;}
+.form-title{font-size:14px; font-weight:600; margin-bottom: 12px; color:#1a1a18; display:flex; align-items:center; gap:8px;}
+.form-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; margin-bottom:12px;}
+.form-input{padding:8px 10px; border:1px solid #d3d1c7; border-radius:6px; font-size:12px; width:100%; outline:none; background:#fff;}
+.form-input:focus{border-color:#888780;}
+.form-input:read-only, .form-input:disabled {background-color: #f5f4f0; color: #5f5e5a; cursor: not-allowed; border-color: #e8e6e0;}
+.btn-primary{padding:8px 16px; background:#1D9E75; color:#fff; border:none; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; transition:0.2s;}
+.btn-primary:hover{background:#157a5a;}
+
+/* ── Filters ── */
+.filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:1.25rem;align-items:center}
+.filters select{font-size:12px;padding:7px 10px;border:1px solid #d3d1c7;border-radius:8px;background:#fff;color:#1a1a18;cursor:pointer;min-width:145px}
+.filters select:hover{border-color:#888780}
+.clr-btn{font-size:12px;color:#888780;cursor:pointer;padding:7px 12px;border:1px solid #d3d1c7;border-radius:8px;background:transparent;display:flex;align-items:center;gap:4px}
+.clr-btn:hover{background:#fff;color:#1a1a18}
+
+/* ── Metrics ── */
+.metrics{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:1.25rem}
+.bt-card{background:#fff;border:1px solid #e8e6e0;border-radius:14px;overflow:hidden;margin-bottom:1.25rem;box-shadow:0 1px 4px rgba(0,0,0,0.04)}
+.bt-card-header{background:#1a1a18;padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
+.bt-card-title{font-size:13px;font-weight:600;color:#fff;display:flex;align-items:center;gap:8px;letter-spacing:0.02em}
+.bt-card-title i{color:rgba(255,255,255,0.55);font-size:16px}
+.bt-summary-pills{display:flex;gap:10px}
+.bt-pill{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:4px 12px;font-size:11px;color:rgba(255,255,255,0.7);display:flex;align-items:center;gap:5px}
+.bt-pill b{color:#fff;font-weight:600}
+.bt-table{width:100%;border-collapse:collapse}
+.bt-table thead th{padding:10px 24px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:#888780;border-bottom:1px solid #f1efe8;background:#fafaf8;text-align:left}
+.bt-table thead th:not(:first-child){text-align:center}
+.bt-table tbody tr{border-bottom:1px solid #f5f4f0;transition:background 0.12s}
+.bt-table tbody tr:last-child{border-bottom:none}
+.bt-table tbody tr:hover{background:#fafaf8}
+.bt-table tbody tr.grand-total{background:#f5f4f0;border-top:2px solid #e8e6e0}
+.bt-table tbody tr.grand-total td{font-weight:600}
+.bt-table td{padding:13px 24px;vertical-align:middle}
+.bt-branch-name{font-size:13px;font-weight:600;color:#1a1a18;display:flex;align-items:center;gap:8px}
+.bt-branch-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.bt-num-cell{text-align:center}
+.bt-big{font-size:18px;font-weight:600;line-height:1;display:block}
+.bt-label{font-size:10px;color:#b4b2a9;margin-top:3px;display:block;text-transform:uppercase;letter-spacing:0.04em}
+.bt-progress-wrap{margin-top:6px;height:4px;background:#f1efe8;border-radius:2px;overflow:hidden;width:80%;margin-left:auto;margin-right:auto}
+.bt-progress-bar{height:4px;border-radius:2px;transition:width 0.4s}
+.bt-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.bt-badge-pending{background:#FEF0F0;color:#E63946}
+.bt-badge-done{background:#EAF3DE;color:#22a84a}
+.bt-badge-over{background:#E6F1FB;color:#2176d2}
+.metric{background:#fff;border:1px solid #e8e6e0;border-radius:10px;padding:14px 16px;position:relative;overflow:hidden}
+.metric::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.metric.m-blue::before{background:#378ADD}
+.metric.m-green::before{background:#1D9E75}
+.metric.m-red::before{background:#A32D2D}
+.metric.m-amber::before{background:#BA7517}
+.metric.m-purple::before{background:#7F77DD}
+.metric.m-grey::before{background:#8c8c8c}
+.metric.m-blue2::before{background:#2176d2}
+.metric .lbl{font-size:10px;color:#888780;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;line-height:1.3}
+.metric .val{font-size:26px;font-weight:500;color:#1a1a18;line-height:1}
+.metric .sub2{font-size:11px;color:#b4b2a9;margin-top:5px}
+.metric .icon-bg{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:30px;color:#f1efe8;pointer-events:none}
+
+/* ── Charts ── */
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+.chart-card{background:#fff;border:1px solid #e8e6e0;border-radius:12px;padding:1rem 1.25rem}
+.chart-title{font-size:13px;font-weight:500;color:#1a1a18;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#5f5e5a}
+.legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+
+/* ── Date × Engineer grid ── */
+.de-table-wrap{overflow-x:auto;overflow-y:auto;max-height:340px}
+.de-table{border-collapse:collapse;font-size:11px;white-space:nowrap;width:100%}
+.de-table th{padding:7px 10px;border:1px solid #e8e6e0;font-size:10px;font-weight:500;color:#888780;background:#fafaf8;text-align:center;position:sticky;top:0;z-index:1}
+.de-table td{padding:6px 10px;border:1px solid #f1efe8;text-align:center}
+.de-table .row-head{text-align:left;font-weight:500;color:#1a1a18;background:#fafaf8;border-right:1px solid #e8e6e0;position:sticky;left:0;z-index:0}
+.de-table .total-col{font-weight:500;background:#f5f4f0;border-left:1px solid #d3d1c7}
+.de-table .total-row td{font-weight:500;background:#f5f4f0;border-top:1px solid #d3d1c7}
+.cell-ok{background:#EAF3DE;color:#3B6D11;border-radius:4px;padding:2px 5px;font-weight:500;font-size:11px;display:inline-block;margin:1px}
+.cell-nr{background:#FCEBEB;color:#A32D2D;border-radius:4px;padding:2px 5px;font-weight:500;font-size:11px;display:inline-block;margin:1px}
+.cell-zero{color:#d3d1c7;font-size:12px}
+.de-legend{font-size:11px;color:#888780;margin-bottom:8px;display:flex;gap:14px;flex-wrap:wrap}
+
+/* ── Records expand/collapse ── */
+.records-card{background:#fff;border:1px solid #e8e6e0;border-radius:12px;margin-bottom:12px;overflow:hidden}
+.records-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;cursor:pointer;user-select:none;border-bottom:1px solid transparent;transition:border-color 0.2s}
+.records-header.open{border-bottom-color:#e8e6e0}
+.records-header:hover{background:#fafaf8}
+.records-header-left{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:500;color:#1a1a18}
+.records-header-right{display:flex;align-items:center;gap:10px}
+.rec-count{font-size:11px;color:#888780;background:#f1efe8;padding:3px 10px;border-radius:20px}
+.toggle-icon{font-size:18px;color:#888780;transition:transform 0.25s}
+.toggle-icon.open{transform:rotate(180deg)}
+.records-body{display:none}
+.records-body.open{display:block}
+.table-scroll{overflow-x:auto;max-height:460px;overflow-y:auto}
+table.data-tbl{width:100%;border-collapse:collapse;font-size:12px}
+table.data-tbl thead th{position:sticky;top:0;z-index:1;background:#fafaf8;text-align:left;padding:8px 10px;border-bottom:1px solid #e8e6e0;font-size:11px;font-weight:500;color:#888780;white-space:nowrap}
+table.data-tbl td{padding:7px 10px;border-bottom:1px solid #f1efe8;color:#1a1a18;white-space:nowrap}
+table.data-tbl tr:last-child td{border-bottom:none}
+table.data-tbl tr:hover td{background:#fafaf8}
+.info-bar{padding:8px 16px;font-size:11px;color:#888780;background:#fafaf8;border-top:1px solid #f1efe8}
+
+/* ── Badges ── */
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:500}
+.badge-ok{background:#EAF3DE;color:#3B6D11}
+.badge-nr{background:#FCEBEB;color:#A32D2D}
+.badge-cab{background:#FAEEDA;color:#854F0B}
+.badge-comp{background:#E6F1FB;color:#185FA5}
+.badge-scrap{background:#F4C0D1;color:#72243E}
+.badge-other{background:#F1EFE8;color:#5F5E5A}
+.no-data{text-align:center;padding:40px;color:#b4b2a9;font-size:13px;line-height:1.5}
+.no-data i{font-size:26px;display:block;margin-bottom:8px;color:#d3d1c7}
+
+@media(max-width:900px){
+  .metrics{grid-template-columns:repeat(4,1fr)}
+  .topbar{height:auto;padding:12px 16px}
+  .three-col{grid-template-columns:1fr!important}
+}
+@media(max-width:1100px){
+  .three-col{grid-template-columns:1fr 1fr!important}
+}
+</style>
+</head>
+<body>
+
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div id="loading-text">Syncing with Cloud Database...</div>
+</div>
+
+<div id="dashboard-container">
+  <div class="topbar">
+    <div class="topbar-left">
+      <img src="logo.png" alt="PROSTARM TRC" class="topbar-logo">
+    </div>
+    <div class="topbar-right">
+      <div class="clock-block">
+        <div class="clock-date" id="clk-date"></div>
+        <div class="clock-time" id="clk-time"></div>
+      </div>
+      
+      <div id="roleDisplay" class="role-display">Role: Checking...</div>
+      <input type="text" id="userInput" class="user-input" readonly />
+
+      <label class="upload-btn" id="upload-btn-label" for="file-input"><i class="ti ti-upload"></i> Upload Excel Data</label>
+      <input type="file" id="file-input" accept=".xlsx,.xls,.csv">
+
+      <button class="logout-btn" onclick="doLogout()"><i class="ti ti-logout"></i> Logout</button>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- ENTRY FORM (Only visible to Engineers) -->
+    <div class="form-card" id="entryFormSection">
+      <div class="form-title"><i class="ti ti-pencil-plus"></i> Add New Record</div>
+      <div class="form-grid">
+        <input type="date" id="f_date" class="form-input" placeholder="Date">
+        <select id="f_branch" class="form-input">
+          <option value="">Select Branch</option>
+          <option value="Pune">Pune</option>
+          <option value="Hyderabad">Hyderabad</option>
+          <option value="Nagpur">Nagpur</option>
+          <option value="Bhopal">Bhopal</option>
+          <option value="Kolkata">Kolkata</option>
+          <option value="Chennai">Chennai</option>
+        </select>
+        <input type="text" id="f_engineer" class="form-input" placeholder="Engineer Name">
+        <input type="text" id="f_product" class="form-input" placeholder="Product">
+        <input type="text" id="f_cap" class="form-input" placeholder="Capacity (e.g. 10 KVA)">
+        <input type="text" id="f_make" class="form-input" placeholder="Make">
+        <input type="text" id="f_vdc" class="form-input" placeholder="VDC">
+        <input type="text" id="f_type" class="form-input" placeholder="Salable / Service">
+        <input type="number" id="f_qty" class="form-input" placeholder="Quantity" value="1">
+        <input type="text" id="f_status" class="form-input" placeholder="Select or type Status" list="status-options">
+        <datalist id="status-options">
+          <option value="Tested Ok">
+          <option value="Non Repairable">
+          <option value="Cabinet (No Spare)">
+          <option value="Component Required">
+          <option value="Scrap">
+        </datalist>
+        <input type="text" id="f_remarks" class="form-input" placeholder="Select or type Remark" list="remarks-options">
+        <datalist id="remarks-options">
+          <option value="Tested Ok">
+          <option value="Non repairable">
+          <option value="Cabinet (No spare)">
+          <option value="Component Required">
+          <option value="Scrap">
+          <option value="Pending">
+        </datalist>
+      </div>
+      <button class="btn-primary" onclick="addManualRecord()">+ Save Record to Cloud</button>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters" id="filters-row" style="display:none">
+      <select id="f-branch"><option value="">All branches</option></select>
+      <select id="f-engineer"><option value="">All engineers</option></select>
+      <select id="f-product"><option value="">All products</option></select>
+      <select id="f-status"><option value="">All statuses</option></select>
+      <select id="f-date"><option value="">All dates</option></select>
+      <button class="clr-btn" onclick="clearFilters()"><i class="ti ti-x" style="font-size:12px"></i> Clear filters</button>
+    </div>
+
+    <!-- Metrics -->
+    <div class="metrics">
+      <div class="metric m-blue">
+        <div class="lbl">Total Spare Checked</div>
+        <div class="val" id="m-total">0</div>
+        <div class="sub2">units processed</div>
+        <i class="ti ti-tool icon-bg" aria-hidden="true"></i>
+      </div>
+      <div class="metric m-green">
+        <div class="lbl">Tested Ok</div>
+        <div class="val" id="m-ok" style="color:#22a84a">0</div>
+        <div class="sub2">units repaired</div>
+        <i class="ti ti-circle-check icon-bg" aria-hidden="true"></i>
+      </div>
+      <div class="metric m-red">
+        <div class="lbl">Tested – Non-repairable</div>
+        <div class="val" id="m-nr" style="color:#E63946">0</div>
+        <div class="sub2">written off</div>
+        <i class="ti ti-circle-x icon-bg" aria-hidden="true"></i>
+      </div>
+      <div class="metric m-grey">
+        <div class="lbl">Cabinet (No Spare)</div>
+        <div class="val" id="m-cab" style="color:#6b6b6b">0</div>
+        <div class="sub2">cabinet only units</div>
+        <i class="ti ti-archive icon-bg" aria-hidden="true"></i>
+      </div>
+      <div class="metric m-blue2">
+        <div class="lbl">Component Required</div>
+        <div class="val" id="m-comp" style="color:#2176d2">0</div>
+        <div class="sub2">awaiting parts</div>
+        <i class="ti ti-cpu icon-bg" aria-hidden="true"></i>
+      </div>
+      <div class="metric m-amber">
+        <div class="lbl">Branch – Spare Received</div>
+        <div class="val" id="m-branches">0</div>
+        <div class="sub2">active locations</div>
+        <i class="ti ti-building icon-bg" aria-hidden="true"></i>
+      </div>
+      <div class="metric m-purple">
+        <div class="lbl">Engineers</div>
+        <div class="val" id="m-engineers">0</div>
+        <div class="sub2">TRC team members</div>
+        <i class="ti ti-users icon-bg" aria-hidden="true"></i>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="three-col">
+      <div class="chart-card">
+        <div class="chart-title"><i class="ti ti-chart-pie" style="font-size:15px;color:#888780"></i> Status breakdown</div>
+        <div id="legend-status" class="legend"></div>
+        <div style="position:relative;height:210px"><canvas id="chart-status" role="img"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><i class="ti ti-building" style="font-size:15px;color:#888780"></i> By branch</div>
+        <div id="legend-branch" class="legend"></div>
+        <div style="position:relative;height:240px"><canvas id="chart-branch" role="img"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><i class="ti ti-user" style="font-size:15px;color:#888780"></i> By engineer</div>
+        <div id="legend-eng" class="legend"></div>
+        <div style="position:relative;height:240px"><canvas id="chart-eng" role="img"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Capacity Chart -->
+    <div style="margin-bottom:12px">
+      <div class="chart-card">
+        <div class="chart-title"><i class="ti ti-stack" style="font-size:15px;color:#888780"></i> Capacity-wise status breakdown</div>
+        <div id="legend-cap" class="legend"></div>
+        <div style="position:relative;height:260px"><canvas id="chart-cap" role="img"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Date-wise Grid -->
+    <div style="margin-bottom:12px">
+      <div class="chart-card" style="width:100%">
+        <div class="chart-title"><i class="ti ti-calendar-stats" style="font-size:15px;color:#888780"></i> Date-wise engineer productivity &amp; status</div>
+        <div class="de-legend" id="de-legend"></div>
+        <div class="de-table-wrap" id="de-table-wrap">
+          <div class="no-data"><i class="ti ti-upload"></i>Upload or add data to view matrix</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Branch Tracker -->
+    <div class="bt-card">
+      <div class="bt-card-header">
+        <div class="bt-card-title"><i class="ti ti-git-branch"></i> Branch-wise Inward &amp; Checking Status</div>
+        <div class="bt-summary-pills" id="bt-pills" style="display:none">
+          <div class="bt-pill">Total Inward <b id="bt-total-inward">—</b></div>
+          <div class="bt-pill">Checked <b id="bt-total-checked">—</b></div>
+          <div class="bt-pill">Remaining <b id="bt-total-remain">—</b></div>
+        </div>
+      </div>
+      <div id="branch-tracker">
+        <div style="padding:32px;text-align:center;color:#b4b2a9;font-size:13px">
+          <i class="ti ti-info-circle" style="font-size:24px;display:block;margin-bottom:10px;color:#d3d1c7" aria-hidden="true"></i>
+          Waiting for Backend Inward Data...
+        </div>
+      </div>
+    </div>
+
+    <!-- Detailed Records -->
+    <div class="records-card">
+      <div class="records-header" id="rec-toggle" onclick="toggleRecords()">
+        <div class="records-header-left">
+          <i class="ti ti-table" style="font-size:16px;color:#888780"></i> Detailed records <span class="rec-count" id="rec-count">0 records</span>
+        </div>
+        <div class="records-header-right">
+          <span id="toggle-label" style="font-size:12px;color:#888780">Click to expand</span>
+          <i class="ti ti-chevron-down toggle-icon" id="toggle-icon"></i>
+        </div>
+      </div>
+      <div class="records-body" id="records-body">
+        <div class="table-scroll">
+          <div id="table-container">
+            <div class="no-data"><i class="ti ti-upload"></i>Upload or add data to see records</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SCRIPTS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+
+<script>
+// ── Security Authentication Check ─────────────────────────────────
+if(!sessionStorage.getItem('trc_role')) {
+    window.location.href = 'login.html';
+}
+
+// ⚠️ YOUR POWER AUTOMATE URLS ⚠️
+const PA_GET_DATA_URL = "https://default000090a2d8654861ba6937e8e47451.72.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/abbe2ceaa4d54f77a5a5ba6381a6beab/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=eOxjVkUQduMSO4q_jp-Eyny9anGkEpP5-bLD0JKZZ5I";
+const PA_POST_DATA_URL = "https://default000090a2d8654861ba6937e8e47451.72.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f5881ddd81974a0d81981a88468cd182/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=t_uGAVB084bp0zyJkygPV5Hr0Z2gvHzP2gG0Wa4UwCU";
+const PA_GET_INWARD_URL = "https://default000090a2d8654861ba6937e8e47451.72.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/879995082b304f7d9ba4a34eecdf8325/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=obcXxORPovX1vBEZx0kPjL2ZyktBjfGZi_tYd-eMIUE"; 
+
+var allData=[];
+var globalInwardData={};
+var charts={};
+
+document.addEventListener("DOMContentLoaded", () => {
+    const dateInput = document.getElementById('f_date');
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.value = today;
+    
+    // Load Inward details from permanent memory so they don't disappear on refresh
+    try {
+        let storedInward = localStorage.getItem('trc_inward_data');
+        if (storedInward) {
+            globalInwardData = JSON.parse(storedInward);
+        }
+    } catch(e) {}
+    
+    let currentRole = sessionStorage.getItem('trc_role');
+    let currentUserName = sessionStorage.getItem('trc_user_name');
+    
+    document.getElementById('userInput').value = currentUserName;
+    
+    if(currentRole === 'manager' || currentRole === 'admin') {
+        document.getElementById('roleDisplay').textContent = 'Role: Manager / Boss';
+        document.getElementById('userInput').style.display = 'inline-block'; 
+    } else {
+        document.getElementById('roleDisplay').textContent = 'Role: TRC Engineer';
+        document.getElementById('upload-btn-label').style.display = 'none'; 
+        document.getElementById('userInput').style.display = 'inline-block'; 
+    }
+    
+    applyRoleSettings(); 
+    showLoading("Fetching Cloud Database...");
+    
+    // Fetch both datasets simultaneously
+    Promise.all([fetchCloudData(), fetchCloudInwardData()]).finally(() => {
+        hideLoading();
+    });
+});
+
+// ── GET Data From Power Automate ─────────────────────────────────
+async function fetchCloudData() {
+  try {
+    const response = await fetch(PA_GET_DATA_URL, { method: 'GET' });
+    if(!response.ok) throw new Error("Fetch failed");
+    
+    let rawData = await response.json();
+    let data = Array.isArray(rawData) ? rawData : (rawData.value || []);
+    
+    if(Array.isArray(data) && data.length > 0) {
+        allData = data.map(r => ({
+            date: normDate(val(r, ['date'])),
+            branch: normBranch(val(r, ['branch'])),
+            engineer: normEngineer(val(r, ['trcengineer', 'engineer', 'name'])),
+            product: sv(val(r, ['product'])),
+            cap: sv(val(r, ['capacity', 'cap'])),
+            make: sv(val(r, ['make'])),
+            vdc: sv(val(r, ['vdc'])),
+            salable: sv(val(r, ['salableservice', 'type', 'salable'])),
+            qty: parseFloat(val(r, ['quantity', 'qty'])) || 1,
+            status: normStatus(val(r, ['statusquantity', 'status'])),
+            remarks: sv(val(r, ['remarks', 'remark']))
+        }));
+        document.getElementById('filters-row').style.display='flex';
+        populateFilters(); 
+        renderAll();
+    }
+  } catch (error) {
+    console.warn("Cloud connection currently unavailable. You can continue working locally.");
+  }
+}
+
+// ── GET Inward Data From Power Automate ──────────────────────────
+async function fetchCloudInwardData() {
+  if (!PA_GET_INWARD_URL) return;
+  
+  try {
+    const response = await fetch(PA_GET_INWARD_URL, { method: 'GET' });
+    if(!response.ok) throw new Error("Inward Fetch failed");
+    
+    let rawData = await response.json();
+    let data = Array.isArray(rawData) ? rawData : (rawData.value || []);
+    
+    if(Array.isArray(data) && data.length > 0) {
+        let inwardMap = {};
+        data.forEach(function(r) {
+          var br = sv(val(r, ['branch'])).trim();
+          var qty = parseFloat(val(r, ['inward', 'qty', 'quantity', 'target'])) || 0;
+          if(br && br.toLowerCase() !== 'grand total' && br.toLowerCase() !== 'total'){
+             inwardMap[normBranch(br)] = qty;
+          }
+        });
+        globalInwardData = inwardMap;
+        renderBranchTracker(globalInwardData);
+    }
+  } catch (error) {
+    console.warn("Could not fetch live Inward data from cloud.", error);
+  }
+}
+
+// ── POST Data To Power Automate ──────────────────────────────────
+async function sendDataToCloud(recordsArray) {
+  try {
+    const CHUNK_SIZE = 20; 
+
+    for (let i = 0; i < recordsArray.length; i += CHUNK_SIZE) {
+        const chunk = recordsArray.slice(i, i + CHUNK_SIZE);
+        const response = await fetch(PA_POST_DATA_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ records: chunk }) 
+        }).catch(e => { throw new Error("Network Error") });
+
+        if(response && !response.ok && response.status !== 504 && response.status !== 502) {
+            throw new Error("Upload Failed on chunk");
+        }
+    }
+    return true;
+  } catch (error) {
+    console.warn("Failed to sync to cloud database:", error);
+    return false;
+  }
+}
+
+function showLoading(text) {
+  document.getElementById('loading-text').innerText = text;
+  document.getElementById('loading-overlay').style.display = 'flex';
+}
+function hideLoading() {
+  document.getElementById('loading-overlay').style.display = 'none';
+}
+
+function doLogout() {
+  sessionStorage.clear();
+  window.location.href = 'login.html';
+}
+
+// ── Utilities & Normalizers ───────────────────────────────────────────
+(function tick(){
+  var now=new Date(),days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+  months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('clk-date').textContent=days[now.getDay()]+', '+now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
+  document.getElementById('clk-time').textContent=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
+  setTimeout(tick,1000);
+})();
+
+var COLORS=['#378ADD','#1D9E75','#D85A30','#D4537E','#BA7517','#7F77DD','#639922','#E24B4A','#5DCAA5','#F0997B','#AFA9EC','#FAC775','#9FE1CB','#888780'];
+var SC={'Tested Ok':'#22a84a','Non Repairable':'#E63946','Cabinet (No Spare)':'#8c8c8c','Only Cabinet':'#8c8c8c','Component Required':'#2176d2','Scrap':'#D4537E','Unknown':'#b0b0b0'};
+
+function sc(s){
+  if(!s)return'#b0b0b0';
+  if(SC[s])return SC[s];
+  var lo=s.toLowerCase().replace(/[\s\-\u2013]+/g,' ').trim();
+  if(lo.indexOf('tested ok')>=0)return'#22a84a';
+  if(lo.indexOf('non rep')>=0||lo.indexOf('non-rep')>=0)return'#E63946';
+  if(lo.indexOf('component')>=0)return'#2176d2';
+  if(lo.indexOf('cabinet')>=0||lo.indexOf('only cab')>=0)return'#8c8c8c';
+  if(lo==='scrap')return'#D4537E';
+  return'#b0b0b0';
+}
+
+function val(r, keyArray) {
+  let lowerKeys = keyArray.map(k => k.toLowerCase().replace(/[^a-z0-9]/g, ''));
+  for (let k in r) {
+    let cleanK = k.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (lowerKeys.includes(cleanK)) { return r[k]; }
+  }
+  return '';
+}
+
+function sv(v){return(v===null||v===undefined)?'':String(v).trim();}
+function normBranch(v){
+  var b=sv(v).toUpperCase().replace(/\s+/g,'');
+  if(b==='PUNE')return'Pune'; if(b==='HYD')return'Hyderabad'; if(b==='NAGPUR')return'Nagpur';
+  if(b==='BHOPAL')return'Bhopal'; if(b==='KOLKATA')return'Kolkata'; if(b==='CHENNAI')return'Chennai';
+  return sv(v).trim()||'Unknown';
+}
+function normEngineer(v){
+  var e=sv(v).trim();if(!e||e.toLowerCase()==='nan')return'Unknown';
+  return e.split(' ').map(function(w){return w.charAt(0).toUpperCase()+w.slice(1).toLowerCase();}).join(' ');
+}
+function normStatus(v){
+  var st=sv(v).trim();if(!st||st.toLowerCase()==='nan')return'Unknown';
+  var lo=st.toLowerCase().replace(/[\s\-–]+/g,' ').trim();
+  if(lo.indexOf('tested ok')===0||lo==='tested ok')return'Tested Ok';
+  if(lo.indexOf('non rep')>=0||lo.indexOf('non-rep')>=0)return'Non Repairable';
+  if(lo.indexOf('cabinet')>=0||lo.indexOf('no spare')>=0)return'Cabinet (No Spare)';
+  if(lo.indexOf('component')>=0||lo.indexOf('required')>=0)return'Component Required';
+  if(lo==='only cabinet')return'Cabinet (No Spare)';
+  if(lo==='scrap')return'Scrap';
+  return st;
+}
+function normDate(v){
+  if(!v) return 'Unknown';
+  var s = String(v).trim();
+  if(s.toLowerCase() === 'nan' || s === '') return 'Unknown';
+  if(v instanceof Date) return v.getFullYear()+'-'+String(v.getMonth()+1).padStart(2,'0')+'-'+String(v.getDate()).padStart(2,'0');
+  var mx = s.match(/(\d{4})[\-\/](\d{1,2})[\-\/](\d{1,2})/);
+  if(mx) return mx[1] + '-' + mx[2].padStart(2,'0') + '-' + mx[3].padStart(2,'0');
+  var mx2 = s.match(/(\d{1,2})[\-\/](\d{1,2})[\-\/](\d{2,4})/);
+  if(mx2) { var yy = mx2[3].length === 2 ? '20'+mx2[3] : mx2[3]; return yy + '-' + mx2[2].padStart(2,'0') + '-' + mx2[1].padStart(2,'0'); }
+  if(typeof v === 'number' || !isNaN(Number(v))) {
+      try { var n = Number(v); if(n > 10000) { var d = XLSX.SSF.parse_date_code(n); return d.y + '-' + String(d.m).padStart(2,'0') + '-' + String(d.d).padStart(2,'0'); } } catch(e){}
+  }
+  return s; 
+}
+
+function applyRoleSettings() {
+  let role = sessionStorage.getItem('trc_role');
+  let name = sessionStorage.getItem('trc_user_name');
+  const fEngineer = document.getElementById('f_engineer');
+  const entryFormSection = document.getElementById('entryFormSection');
+  
+  if(role !== 'manager' && role !== 'admin') {
+    fEngineer.value = name;
+    fEngineer.setAttribute('readonly', 'true');
+    entryFormSection.style.display = 'block';
+  } else {
+    fEngineer.value = '';
+    fEngineer.removeAttribute('readonly');
+    entryFormSection.style.display = 'none';
+  }
+}
+
+function normalizeForCompare(str) {
+  return String(str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function isDuplicate(newRec, targetArray) {
+  const n = normalizeForCompare;
+  return targetArray.some(r => 
+    n(r.date) === n(newRec.date) &&
+    n(r.branch) === n(newRec.branch) &&
+    n(r.engineer) === n(newRec.engineer) &&
+    n(r.product) === n(newRec.product) &&
+    n(r.cap) === n(newRec.cap) &&
+    n(r.make) === n(newRec.make) &&
+    n(r.vdc) === n(newRec.vdc) &&
+    n(r.salable) === n(newRec.salable) &&
+    (parseFloat(r.qty) || 0) === (parseFloat(newRec.qty) || 0) &&
+    n(r.status) === n(newRec.status) &&
+    n(r.remarks) === n(newRec.remarks)
+  );
+}
+
+// ── Manual Add ─────────────────────────────────
+async function addManualRecord() {
+  let rawQty = parseFloat(document.getElementById('f_qty').value);
+  const newRec = {
+    date: normDate(document.getElementById('f_date').value),
+    branch: normBranch(document.getElementById('f_branch').value),
+    engineer: normEngineer(document.getElementById('f_engineer').value),
+    product: sv(document.getElementById('f_product').value),
+    cap: sv(document.getElementById('f_cap').value),
+    make: sv(document.getElementById('f_make').value),
+    vdc: sv(document.getElementById('f_vdc').value),
+    salable: sv(document.getElementById('f_type').value),
+    qty: isNaN(rawQty) ? 1 : rawQty,
+    status: normStatus(document.getElementById('f_status').value),
+    remarks: sv(document.getElementById('f_remarks').value)
+  };
+
+  if(!newRec.date || newRec.date === 'Unknown' || !newRec.branch || newRec.branch === 'Unknown' || !newRec.engineer || newRec.engineer === 'Unknown') {
+    return alert("Please fill in at least Date, Branch, and Engineer Name.");
+  }
+  if(isDuplicate(newRec, allData)) {
+    return alert("This exact record already exists! Duplicate prevented.");
+  }
+
+  allData.unshift(newRec);
+  document.getElementById('filters-row').style.display='flex';
+  populateFilters();
+  renderAll();
+  
+  document.getElementById('f_product').value = '';
+  document.getElementById('f_cap').value = '';
+  document.getElementById('f_make').value = '';
+  document.getElementById('f_vdc').value = '';
+  document.getElementById('f_type').value = '';
+  document.getElementById('f_qty').value = '1';
+  document.getElementById('f_status').value = '';
+  document.getElementById('f_remarks').value = '';
+
+  let success = await sendDataToCloud([newRec]);
+  if(success) {
+      alert("Record saved locally and synced to Cloud Database successfully.");
+  } else {
+      alert("Record saved LOCALLY ONLY. Cloud connection failed.");
+  }
+}
+
+// ── Excel Upload ─────────────────────────────────
+document.getElementById('file-input').addEventListener('change',function(e){
+  var f=e.target.files[0];if(!f)return;
+  var reader = new FileReader();
+  
+  reader.onload= async function(ev){
+    try{
+      showLoading("Processing Excel Data...");
+      
+      var data = new Uint8Array(ev.target.result);
+      var wb = XLSX.read(data, {type:'array', cellDates:true});
+      
+      // ONLY read the main data sheet. Inward data is completely ignored from local files.
+      var sn=wb.SheetNames.find(n => !n.toLowerCase().includes('inward')) || wb.SheetNames[0];
+
+      var raw=XLSX.utils.sheet_to_json(wb.Sheets[sn],{defval:''});
+      var newRows=raw.map(function(r){return{
+        cap:sv(val(r, ['capacity', 'cap'])),
+        make:sv(val(r, ['make'])),
+        vdc:sv(val(r, ['vdc'])),
+        product:sv(val(r, ['product'])),
+        salable:sv(val(r, ['salableservice', 'type', 'salable'])),
+        branch:normBranch(val(r, ['branch'])),
+        qty:parseFloat(val(r, ['quantity', 'qty'])) || 1,
+        engineer:normEngineer(val(r, ['trcengineer', 'engineer', 'name'])),
+        status:normStatus(val(r, ['statusquantity', 'status'])),
+        date:normDate(val(r, ['date'])),
+        remarks:sv(val(r, ['remarks', 'remark']))
+      }}).filter(r => r.branch !== 'Unknown' && r.engineer !== 'Unknown');
+
+      let recordsToUpload = [];
+      let dupCount = 0;
+      
+      newRows.forEach(rec => {
+        let isDupInDB = isDuplicate(rec, allData);
+        let isDupInCurrentBatch = isDuplicate(rec, recordsToUpload);
+        
+        if(!isDupInDB && !isDupInCurrentBatch) {
+          recordsToUpload.push(rec);
+        } else {
+          dupCount++;
+        }
+      });
+
+      if(recordsToUpload.length > 0) {
+          allData.push(...recordsToUpload);
+          document.getElementById('filters-row').style.display='flex';
+          populateFilters();
+          renderAll();
+          hideLoading();
+          
+          let role = sessionStorage.getItem('trc_role');
+          let name = sessionStorage.getItem('trc_user_name');
+          let visibleData = getFiltered();
+          
+          if (role !== 'manager' && role !== 'admin' && visibleData.length === 0) {
+              alert(`Dashboard Updated!\nAdded: ${recordsToUpload.length} new records.\n\nNOTE: None of the uploaded records belong to you (${name}), so they are hidden from your view.`);
+          } else {
+              alert(`Dashboard Updated Locally!\nAdded: ${recordsToUpload.length} new records.\nSkipped: ${dupCount} duplicates.\n\nSyncing to Cloud Database in the background...`);
+          }
+
+          sendDataToCloud(recordsToUpload).then(success => {
+              if(!success) console.warn("WARNING: Cloud sync failed. Ensure Power Automate is running.");
+          });
+
+      } else {
+          hideLoading();
+          alert(`No new records to upload.\nSkipped: ${dupCount} exact duplicates.`);
+      }
+      
+      document.getElementById('file-input').value = '';
+    }catch(err){
+      hideLoading();
+      alert('Error reading file: '+err.message);
+    }
+  };
+  reader.readAsArrayBuffer(f);
+});
+
+// ── STRICT SECURITY: Filter Engine ───────────────
+function getRoleFilteredData() {
+  let role = sessionStorage.getItem('trc_role') || 'user';
+  let name = (sessionStorage.getItem('trc_user_name') || '').toLowerCase().trim();
+
+  if (role === 'manager' || role === 'admin') {
+      return allData; 
+  }
+
+  return allData.filter(row => {
+      if (!name) return false; 
+      let engName = String(row.engineer || '').toLowerCase().trim();
+      return engName === name; 
+  });
+}
+
+function getFiltered() {
+  var b = document.getElementById('f-branch');
+  var e = document.getElementById('f-engineer');
+  var p = document.getElementById('f-product'); 
+  var st = document.getElementById('f-status');
+  var d = document.getElementById('f-date');
+  
+  b = b ? b.value : '';
+  e = e ? e.value : '';
+  p = p ? p.value : '';
+  st = st ? st.value : '';
+  d = d ? d.value : '';
+
+  return getRoleFilteredData().filter(function(r){
+    return (!b || r.branch === b) &&
+           (!e || r.engineer === e) &&
+           (!p || r.product === p) &&
+           (!st || r.status === st) &&
+           (!d || r.date === d);
+  });
+}
+
+function populateFilters() {
+  var baseData = getRoleFilteredData();
+  var fields = ['branch','engineer','product','status','date'];
+  var ids = ['f-branch','f-engineer','f-product','f-status','f-date'];
+  var labels = ['All branches','All engineers','All products','All statuses','All dates'];
+  
+  fields.forEach((f, i) => {
+      var sel = document.getElementById(ids[i]);
+      if(!sel) return;
+      
+      var currentVal = sel.value; 
+      var uniqueVals = [...new Set(baseData.map(r => r[f]))].filter(v => v && v !== 'Unknown').sort();
+      
+      sel.innerHTML = `<option value="">${labels[i]}</option>` + 
+                      uniqueVals.map(v => `<option value="${v}" ${v === currentVal ? 'selected' : ''}>${v}</option>`).join('');
+                      
+      sel.onchange = function() { renderAll(); }; 
+  });
+}
+
+function clearFilters(){
+  ['f-branch','f-engineer','f-product','f-status','f-date'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.value='';
+  });
+  renderAll();
+}
+
+function renderAll(){
+  var data=getFiltered();
+  
+  try { renderMetrics(data); } catch(e) { console.error('Metrics Crash:', e); }
+  try { renderStatus(data); } catch(e) { console.error('Pie Chart Crash:', e); }
+  try { renderDateEngineer(data); } catch(e) { console.error('Date Grid Crash:', e); }
+  try { renderBranch(data); } catch(e) { console.error('Branch Chart Crash:', e); }
+  try { renderEngineer(data); } catch(e) { console.error('Eng Chart Crash:', e); }
+  try { renderCapacity(data); } catch(e) { console.error('Cap Chart Crash:', e); }
+  try { renderTable(data); } catch(e) { console.error('Table Crash:', e); }
+  try { renderBranchTracker(globalInwardData); } catch(e) { console.error('Tracker Crash:', e); }
+}
+
+function renderBranchTracker(inwardData){
+  var checkedMap={};
+  getFiltered().forEach(function(r){
+    var b=r.branch||'Unknown';if(b==='Unknown')return;
+    checkedMap[b]=(checkedMap[b]||0)+r.qty;
+  });
+
+  var branches = [...new Set([...Object.keys(inwardData), ...Object.keys(checkedMap)])].sort();
+
+  if(!branches.length) {
+      document.getElementById('branch-tracker').innerHTML = '<div style="padding:32px;text-align:center;color:#b4b2a9;font-size:13px"><i class="ti ti-info-circle" style="font-size:24px;display:block;margin-bottom:10px;color:#d3d1c7" aria-hidden="true"></i>No branch data available yet. Upload data to begin.</div>';
+      document.getElementById('bt-pills').style.display='none';
+      return;
+  }
+
+  function matchBranch(br){
+    var lo=br.toLowerCase().trim();
+    for(var nb in checkedMap){if(nb.toLowerCase()===lo)return nb;}
+    return null;
+  }
+
+  var dotColors=['#378ADD','#1D9E75','#D85A30','#7F77DD','#BA7517','#E24B4A','#5DCAA5','#FAC775'];
+  
+  var totalInward=0;
+  var totalChecked=0;
+
+  var thead='<thead><tr><th style="width:200px">Branch</th><th>Inward</th><th>Checked</th><th>% Completion</th><th>Remaining to Check</th></tr></thead>';
+  var tbody='<tbody>';
+  
+  branches.forEach(function(br,idx){
+    var inward = inwardData[br] || 0; 
+    totalInward += inward;
+
+    var matched = matchBranch(br);
+    var checked = matched ? Math.round(checkedMap[matched]||0) : 0;
+    totalChecked += checked;
+
+    var remain = inward - checked;
+    var pct = inward > 0 ? Math.min(100, Math.round((checked/inward)*100)) : (checked > 0 ? 100 : 0);
+    
+    var dotCol=dotColors[idx%dotColors.length];
+    var barCol=pct>=100?'#22a84a':pct>=60?'#378ADD':'#E63946';
+    var remainBadge=remain<=0
+      ?(checked>inward?'<span class="bt-badge bt-badge-over"><i class="ti ti-arrow-up" style="font-size:10px"></i>Over by '+Math.abs(remain)+'</span>':'<span class="bt-badge bt-badge-done"><i class="ti ti-check" style="font-size:10px"></i> Complete</span>')
+      :'<span class="bt-badge bt-badge-pending"><i class="ti ti-clock" style="font-size:10px"></i> '+remain.toLocaleString()+'</span>';
+
+    tbody+='<tr>'+
+      '<td><div class="bt-branch-name"><span class="bt-branch-dot" style="background:'+dotCol+'"></span>'+br+'</div></td>'+
+      '<td class="bt-num-cell"><span class="bt-big" style="color:#378ADD">'+inward.toLocaleString()+'</span><span class="bt-label">units</span></td>'+
+      '<td class="bt-num-cell"><span class="bt-big" style="color:#22a84a">'+checked.toLocaleString()+'</span><span class="bt-label">units</span></td>'+
+      '<td class="bt-num-cell"><span class="bt-big" style="color:'+barCol+'">'+pct+'%</span>'+
+        '<div class="bt-progress-wrap"><div class="bt-progress-bar" style="width:'+pct+'%;background:'+barCol+'"></div></div></td>'+
+      '<td class="bt-num-cell">'+remainBadge+'</td>'+
+    '</tr>';
+  });
+
+  var totalRemain = Math.max(0, totalInward - totalChecked);
+  var totalPct = totalInward > 0 ? Math.min(100, Math.round((totalChecked/totalInward)*100)) : (totalChecked > 0 ? 100 : 0);
+  var totBarCol = totalPct >= 100 ? '#22a84a' : totalPct >= 60 ? '#378ADD' : '#E63946';
+  var totRemBadge = totalRemain <= 0
+    ?'<span class="bt-badge bt-badge-done"><i class="ti ti-check" style="font-size:10px"></i> Complete</span>'
+    :'<span class="bt-badge bt-badge-pending"><i class="ti ti-clock" style="font-size:10px"></i> '+totalRemain.toLocaleString()+'</span>';
+
+  document.getElementById('bt-pills').style.display='flex';
+  document.getElementById('bt-total-inward').textContent=totalInward.toLocaleString();
+  document.getElementById('bt-total-checked').textContent=totalChecked.toLocaleString();
+  document.getElementById('bt-total-remain').textContent=totalRemain.toLocaleString();
+
+  tbody+='<tr class="grand-total">'+
+    '<td><div class="bt-branch-name"><span class="bt-branch-dot" style="background:#1a1a18"></span>Grand Total</div></td>'+
+    '<td class="bt-num-cell"><span class="bt-big" style="color:#378ADD">'+totalInward.toLocaleString()+'</span><span class="bt-label">units</span></td>'+
+    '<td class="bt-num-cell"><span class="bt-big" style="color:#22a84a">'+totalChecked.toLocaleString()+'</span><span class="bt-label">units</span></td>'+
+    '<td class="bt-num-cell"><span class="bt-big" style="color:'+totBarCol+'">'+totalPct+'%</span>'+
+      '<div class="bt-progress-wrap"><div class="bt-progress-bar" style="width:'+totalPct+'%;background:'+totBarCol+'"></div></div></td>'+
+    '<td class="bt-num-cell">'+totRemBadge+'</td>'+
+  '</tr></tbody>';
+  document.getElementById('branch-tracker').innerHTML='<table class="bt-table">'+thead+tbody+'</table>';
+}
+
+function renderMetrics(data){
+  var total=data.reduce(function(s,r){return s+r.qty;},0);
+  document.getElementById('m-total').textContent=total.toLocaleString();
+  document.getElementById('m-branches').textContent=new Set(data.map(function(r){return r.branch;}).filter(Boolean)).size;
+  document.getElementById('m-engineers').textContent=new Set(data.map(function(r){return r.engineer;}).filter(function(v){return v&&v!=='Unknown';})).size;
+  var ok=data.filter(function(r){return r.status==='Tested Ok';}).reduce(function(s,r){return s+r.qty;},0);
+  var nr=data.filter(function(r){return r.status==='Non Repairable';}).reduce(function(s,r){return s+r.qty;},0);
+  var cab=data.filter(function(r){return r.status==='Cabinet (No Spare)';}).reduce(function(s,r){return s+r.qty;},0);
+  var comp=data.filter(function(r){return r.status==='Component Required';}).reduce(function(s,r){return s+r.qty;},0);
+  document.getElementById('m-ok').textContent=ok.toLocaleString();
+  document.getElementById('m-nr').textContent=nr.toLocaleString();
+  document.getElementById('m-cab').textContent=cab.toLocaleString();
+  document.getElementById('m-comp').textContent=comp.toLocaleString();
+}
+
+function groupByQty(data, field) {
+  var map = {};
+  data.forEach(function(r) {
+    var k = r[field];
+    if (k && k !== 'Unknown') map[k] = (map[k] || 0) + (r.qty || 0);
+  });
+  return Object.keys(map)
+    .map(function(k) { return [k, map[k]]; })
+    .sort(function(a, b) { return b[1] - a[1]; });
+}
+
+// ── FIXED: Pie Chart Custom Labels Restored ──
+function renderStatus(data){
+  var entries=groupByQty(data,'status').filter(function(e){return e[0]!=='Unknown';});
+  if(!entries.length) {
+     if(charts['chart-status']) { charts['chart-status'].destroy(); }
+     document.getElementById('legend-status').innerHTML = '';
+     return;
+  }
+  var total=entries.reduce(function(a,e){return a+e[1];},0);
+  var statuses=entries.map(function(e){return e[0];});
+  var vals=entries.map(function(e){return e[1];});
+  var colors=statuses.map(function(s){return sc(s);});
+  
+  document.getElementById('legend-status').innerHTML=statuses.map(function(s,i){
+    var pct=total?Math.round(vals[i]/total*100):0;
+    return'<span class="legend-item"><span class="legend-dot" style="background:'+colors[i]+'"></span>'+s+' ('+vals[i]+' · '+pct+'%)</span>';
+  }).join('');
+  
+  if(charts['chart-status']) { charts['chart-status'].destroy(); }
+  var ctx=document.getElementById('chart-status').getContext('2d');
+  
+  charts['chart-status']=new Chart(ctx,{
+    type:'pie', 
+    data:{labels:statuses,datasets:[{data:vals,backgroundColor:colors,borderColor:'#fff',borderWidth:2}]},
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            label:function(c){
+              var pct=total?Math.round(c.raw/total*100):0;
+              return' '+c.label+': '+c.raw+' ('+pct+'%)';
+            }
+          }
+        }
+      }
+    },
+    plugins:[{id:'pieLabels',afterDatasetsDraw:function(chart){
+      try {
+        var c2=chart.ctx,ds=chart.data.datasets[0],meta=chart.getDatasetMeta(0);
+        meta.data.forEach(function(arc,i){
+          var val=ds.data[i];if(!val)return; 
+          var pct=total?Math.round(val/total*100):0;if(pct<5)return;
+          var angle=(arc.startAngle+arc.endAngle)/2;
+          var r=arc.outerRadius*0.65;
+          var x=arc.x+Math.cos(angle)*r,y=arc.y+Math.sin(angle)*r;
+          c2.save();c2.fillStyle='#fff';c2.textAlign='center';c2.textBaseline='middle';
+          c2.font='bold 12px -apple-system,sans-serif';c2.fillText(val,x,y-7);
+          c2.font='11px -apple-system,sans-serif';c2.fillText(pct+'%',x,y+7);
+          c2.restore();
+        });
+      } catch(e) { console.error('Pie label error', e); }
+    }}]
+  });
+}
+
+// ── FIXED: Date Engineer Push Bug Restored ──
+function renderDateEngineer(data){
+  var dates=[...new Set(data.map(function(r){return r.date;}).filter(function(d){return d&&d!=='Unknown';}))].sort(function(a,b){if(a==='Early 25')return-1;if(b==='Early 25')return 1;return a<b?-1:1;});
+  var engineers=[...new Set(data.map(function(r){return r.engineer;}).filter(function(e){return e&&e!=='Unknown';}))].sort();
+  
+  if(!dates.length||!engineers.length){
+      document.getElementById('de-table-wrap').innerHTML='<div class="no-data"><i class="ti ti-calendar-x"></i>No date data available to display matrix</div>';
+      return;
+  }
+  var cells={};
+  data.forEach(function(r){if(!r.date||r.date==='Unknown'||!r.engineer||r.engineer==='Unknown')return;var k=r.date+'||'+r.engineer;if(!cells[k])cells[k]={qty:0,ok:0,nr:0};cells[k].qty+=r.qty;if(r.status==='Tested Ok')cells[k].ok+=r.qty;else if(r.status==='Non Repairable')cells[k].nr+=r.qty;});
+  var dTot={},eTot={},gQty=0,gOk=0,gNr=0;
+  dates.forEach(function(d){dTot[d]={qty:0,ok:0,nr:0};});
+  engineers.forEach(function(e){eTot[e]={qty:0,ok:0,nr:0};});
+  data.forEach(function(r){if(!r.date||r.date==='Unknown'||!r.engineer||r.engineer==='Unknown')return;dTot[r.date].qty+=r.qty;dTot[r.date].ok+=(r.status==='Tested Ok'?r.qty:0);dTot[r.date].nr+=(r.status==='Non Repairable'?r.qty:0);eTot[r.engineer].qty+=r.qty;eTot[r.engineer].ok+=(r.status==='Tested Ok'?r.qty:0);eTot[r.engineer].nr+=(r.status==='Non Repairable'?r.qty:0);gQty+=r.qty;gOk+=(r.status==='Tested Ok'?r.qty:0);gNr+=(r.status==='Non Repairable'?r.qty:0);});
+  function cellHtml(c){
+    if(!c||c.qty===0)return'<span class="cell-zero">—</span>';
+    var parts=[];
+    if(c.ok)parts.push('<span class="cell-ok">'+c.ok+' ✓</span>');
+    if(c.nr)parts.push('<span class="cell-nr">'+c.nr+' ✗</span>');
+    var oth=c.qty-c.ok-c.nr;if(oth>0)parts.push('<span style="font-size:11px;color:#5f5e5a">'+oth+'</span>');
+    return parts.join('');
+  }
+  document.getElementById('de-legend').innerHTML='<span class="cell-ok">N ✓</span> Tested Ok &nbsp; <span class="cell-nr">N ✗</span> Non Repairable &nbsp; plain = other status';
+  var thead='<tr><th class="row-head" style="min-width:110px">Engineer</th>'+dates.map(function(d){return'<th>'+d+'</th>';}).join('')+'<th class="total-col">Total</th></tr>';
+  var tbody=engineers.map(function(eng){return'<tr><td class="row-head">'+eng+'</td>'+dates.map(function(d){return'<td>'+cellHtml(cells[d+'||'+eng])+'</td>';}).join('')+'<td class="total-col">'+cellHtml(eTot[eng])+'</td></tr>';}).join('');
+  tbody+='<tr class="total-row"><td class="row-head">Total</td>'+dates.map(function(d){return'<td>'+cellHtml(dTot[d])+'</td>';}).join('')+'<td class="total-col">'+cellHtml({qty:gQty,ok:gOk,nr:gNr})+'</td></tr>';
+  document.getElementById('de-table-wrap').innerHTML='<table class="de-table"><thead>'+thead+'</thead><tbody>'+tbody+'</tbody></table>';
+}
+
+// ── RESTORED: Original Bar Chart Engine ──
+function buildStackedStatusChart(canvasId,legendId,groupKey,data,tickSize,maxRotation){
+  var statusOrder=['Tested Ok','Non Repairable','Cabinet (No Spare)','Only Cabinet','Component Required','Scrap'];
+  var statusSet={};
+  data.forEach(function(r){if(r.status&&r.status!=='Unknown')statusSet[r.status]=true;});
+  var statuses=statusOrder.filter(function(s){return statusSet[s];});
+  Object.keys(statusSet).forEach(function(s){if(statuses.indexOf(s)<0)statuses.push(s);});
+
+  var totalByGroup={};
+  data.forEach(function(r){var k=r[groupKey];if(!k||k==='Unknown')return;totalByGroup[k]=(totalByGroup[k]||0)+r.qty;});
+  var labels=Object.keys(totalByGroup).sort(function(a,b){return totalByGroup[b]-totalByGroup[a];});
+
+  if(!labels.length) {
+     if(charts[canvasId]) { charts[canvasId].destroy(); }
+     document.getElementById(legendId).innerHTML = '';
+     return;
+  }
+
+  var cell={};
+  data.forEach(function(r){
+    var g=r[groupKey];if(!g||g==='Unknown')return;
+    var s=r.status||'Unknown';if(s==='Unknown')return;
+    if(!cell[g])cell[g]={};
+    if(!cell[g][s])cell[g][s]={qty:0,cnt:0};
+    cell[g][s].qty+=r.qty;cell[g][s].cnt+=1;
+  });
+
+  var datasets=statuses.map(function(st){
+    return{label:st,data:labels.map(function(g){return cell[g]&&cell[g][st]?cell[g][st].qty:0;}),backgroundColor:sc(st),borderColor:'#fff',borderWidth:1,borderSkipped:false};
+  });
+
+  if(charts[canvasId]) { charts[canvasId].destroy(); }
+  var ctx=document.getElementById(canvasId).getContext('2d');
+  
+  charts[canvasId]=new Chart(ctx,{
+    type:'bar',data:{labels:labels,datasets:datasets},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{title:function(i){return i[0].label;},label:function(c){if(!c.raw)return null;return' '+c.dataset.label+': '+c.raw+' qty';}}}
+      },
+      scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:tickSize||11},maxRotation:maxRotation||0}},y:{stacked:true,grid:{color:'rgba(0,0,0,0.05)'},ticks:{font:{size:11}}}}
+    },
+    plugins:[{id:'qtyLabels',afterDatasetsDraw:function(chart){ 
+      try {
+        var c2=chart.ctx;
+        chart.data.datasets.forEach(function(ds,di){
+          var meta=chart.getDatasetMeta(di);if(meta.hidden)return;
+          meta.data.forEach(function(bar,bi){
+            var val=ds.data[bi];if(!val)return;
+            var barH=bar.height||0;if(barH<20)return;
+            c2.save();c2.fillStyle='#fff';c2.textAlign='center';c2.textBaseline='middle';
+            c2.font='bold 11px -apple-system,sans-serif';
+            c2.fillText(val,bar.x,bar.y+(barH/2));
+            c2.restore();
+          });
+        });
+      } catch(e) { console.error('Bar label error', e); }
+    }}]
+  });
+
+  document.getElementById(legendId).innerHTML=statuses.map(function(st){
+    return'<span class="legend-item"><span class="legend-dot" style="background:'+sc(st)+'"></span>'+st+'</span>';
+  }).join('');
+}
+
+function renderBranch(data){ buildStackedStatusChart('chart-branch','legend-branch','branch',data,12,0); }
+function renderEngineer(data){ buildStackedStatusChart('chart-eng','legend-eng','engineer',data,10,38); }
+
+function parseCapacityToVA(cap) {
+  let val = parseFloat(cap) || 0;
+  let lowerCap = String(cap).toLowerCase();
+  if (lowerCap.includes('kva')) return val * 1000;
+  return val; 
+}
+
+function renderCapacity(data){
+  var statusOrder=['Tested Ok','Non Repairable','Cabinet (No Spare)','Only Cabinet','Component Required','Scrap'];
+  var statusSet={};
+  data.forEach(function(r){if(r.status&&r.status!=='Unknown')statusSet[r.status]=true;});
+  var statuses=statusOrder.filter(function(s){return statusSet[s];});
+  Object.keys(statusSet).forEach(function(s){if(statuses.indexOf(s)<0)statuses.push(s);});
+
+  var capTotals={};
+  data.forEach(function(r){if(r.cap&&r.cap!=='')capTotals[r.cap]=(capTotals[r.cap]||0)+r.qty;});
+  var caps=Object.keys(capTotals).sort(function(a,b){
+    var al=a.trim().toLowerCase(), bl=b.trim().toLowerCase();
+    if(al==='600va') return -1; if(bl==='600va') return 1;
+    if(al==='external charger') return 1; if(bl==='external charger') return -1;
+    return parseCapacityToVA(a) - parseCapacityToVA(b);
+  });
+
+  if(!caps.length) {
+     if(charts['chart-cap']) { charts['chart-cap'].destroy(); }
+     document.getElementById('legend-cap').innerHTML = '';
+     return;
+  }
+
+  var cell={};
+  data.forEach(function(r){
+    if(!r.cap||!r.status||r.status==='Unknown')return;
+    if(!cell[r.cap])cell[r.cap]={};
+    if(!cell[r.cap][r.status])cell[r.cap][r.status]={qty:0,cnt:0};
+    cell[r.cap][r.status].qty+=r.qty;cell[r.cap][r.status].cnt+=1;
+  });
+
+  var datasets=statuses.map(function(st){
+    return{label:st,data:caps.map(function(c){return cell[c]&&cell[c][st]?cell[c][st].qty:0;}),backgroundColor:sc(st),borderColor:'#fff',borderWidth:1,borderSkipped:false};
+  });
+
+  if(charts['chart-cap']) { charts['chart-cap'].destroy(); }
+  var ctx=document.getElementById('chart-cap').getContext('2d');
+  
+  charts['chart-cap']=new Chart(ctx,{
+    type:'bar',data:{labels:caps,datasets:datasets},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{title:function(i){return'Capacity: '+i[0].label;},label:function(c){if(!c.raw)return null;return' '+c.dataset.label+': '+c.raw+' qty';}}}
+      },
+      scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:11}}},y:{stacked:true,grid:{color:'rgba(0,0,0,0.05)'},ticks:{font:{size:11}}}}
+    },
+    plugins:[{id:'capQtyLabels',afterDatasetsDraw:function(chart){ 
+      try {
+        var c2=chart.ctx;
+        chart.data.datasets.forEach(function(ds,di){
+          var meta=chart.getDatasetMeta(di);if(meta.hidden)return;
+          meta.data.forEach(function(bar,bi){
+            var val=ds.data[bi];if(!val)return;
+            var barH=bar.height||0;if(barH<20)return;
+            c2.save();c2.fillStyle='#fff';c2.textAlign='center';c2.textBaseline='middle';
+            c2.font='bold 11px -apple-system,sans-serif';
+            c2.fillText(val,bar.x,bar.y+(barH/2));
+            c2.restore();
+          });
+        });
+      } catch(e) { console.error('Cap label error', e); }
+    }}]
+  });
+
+  document.getElementById('legend-cap').innerHTML=statuses.map(function(st){
+    return'<span class="legend-item"><span class="legend-dot" style="background:'+sc(st)+'"></span>'+st+'</span>';
+  }).join('');
+}
+
+var recOpen=false;
+function toggleRecords(){
+  recOpen=!recOpen;
+  document.getElementById('records-body').className='records-body'+(recOpen?' open':'');
+  document.getElementById('toggle-icon').className='ti ti-chevron-down toggle-icon'+(recOpen?' open':'');
+  document.getElementById('rec-toggle').className='records-header'+(recOpen?' open':'');
+  document.getElementById('toggle-label').textContent=recOpen?'Click to collapse':'Click to expand';
+}
+
+function statusBadge(s){
+  if(s==='Tested Ok')return'<span class="badge badge-ok">'+s+'</span>';
+  if(s==='Non Repairable')return'<span class="badge badge-nr">'+s+'</span>';
+  if(s==='Cabinet (No Spare)')return'<span class="badge badge-cab">'+s+'</span>';
+  if(s==='Component Required')return'<span class="badge badge-comp">'+s+'</span>';
+  if(s==='Scrap')return'<span class="badge badge-scrap">'+s+'</span>';
+  if(s==='Only Cabinet')return'<span class="badge badge-cab">'+s+'</span>';
+  return'<span class="badge badge-other">'+(s||'—')+'</span>';
+}
+
+function renderTable(data){
+  let role = sessionStorage.getItem('trc_role');
+  let name = sessionStorage.getItem('trc_user_name');
+
+  if (role !== 'manager' && role !== 'admin' && !name) {
+     document.getElementById('rec-count').textContent = '0 records';
+     document.getElementById('table-container').innerHTML='<div class="no-data"><i class="ti ti-user"></i>Please log in to view your records</div>';
+     return;
+  }
+
+  document.getElementById('rec-count').textContent=data.length.toLocaleString()+' records';
+  if(!data.length){
+     let msg = (role !== 'manager' && role !== 'admin')
+       ? `<div class="no-data"><i class="ti ti-file-x"></i>No records found for engineer "${name}".<br><span style="font-size:11px; opacity:0.7">If you uploaded a file, it might only contain data for other engineers. Log in as an admin to see all data.</span></div>` 
+       : '<div class="no-data"><i class="ti ti-file-x"></i>No matching records found</div>';
+     document.getElementById('table-container').innerHTML = msg;
+     return;
+  }
+  
+  var show=data.slice(0,500);
+  
+  var rows=show.map(function(r){
+    return'<tr>'+
+      '<td>'+r.date+'</td>'+
+      '<td>'+r.branch+'</td>'+
+      '<td>'+r.engineer+'</td>'+
+      '<td>'+r.product+'</td>'+
+      '<td>'+r.cap+'</td>'+
+      '<td>'+r.vdc+'</td>'+
+      '<td style="text-align:center;font-weight:500">'+r.qty+'</td>'+
+      '<td>'+statusBadge(r.status)+'</td>'+
+      '<td>'+r.salable+'</td>'+
+      '<td>'+r.remarks+'</td>'+
+    '</tr>';
+  }).join('');
+  
+  var note=data.length>500?'<div class="info-bar">Showing first 500 of '+data.length.toLocaleString()+' records</div>':'';
+  document.getElementById('table-container').innerHTML='<table class="data-tbl"><thead><tr><th>Date</th><th>Branch</th><th>Engineer</th><th>Product</th><th>Capacity</th><th>VDC</th><th>Qty</th><th>Status</th><th>Type</th><th>Remarks</th></tr></thead><tbody>'+rows+'</tbody></table>'+note;
+}
+</script>
+</body>
+</html>
