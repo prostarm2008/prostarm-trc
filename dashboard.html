@@ -22,11 +22,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .role-display{padding:6px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.22); background:#333; color:#fff; font-size:12px; font-weight: 500; user-select:none;}
 .user-input{padding:6px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.22); background:#333; color:#fff; font-size:12px; font-weight:500; outline:none; display:none; min-width: 120px; text-align: center; cursor: default;}
 
-.upload-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border:1px solid rgba(255,255,255,0.22);border-radius:8px;background:transparent;cursor:pointer;font-size:12px;font-weight:500;color:#fff;white-space:nowrap;transition:background 0.15s}
+.upload-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 14px;border:1px solid rgba(255,255,255,0.22);border-radius:8px;background:transparent;cursor:pointer;font-size:12px;font-weight:500;color:#fff;white-space:nowrap;transition:background 0.15s}
 .upload-btn:hover{background:rgba(255,255,255,0.1)}
 input[type=file]{display:none}
 
-.logout-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border:1px solid rgba(230,57,70,0.5);border-radius:8px;background:transparent;cursor:pointer;font-size:12px;font-weight:500;color:#E63946;white-space:nowrap;transition:background 0.15s}
+.logout-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 14px;border:1px solid rgba(230,57,70,0.5);border-radius:8px;background:transparent;cursor:pointer;font-size:12px;font-weight:500;color:#E63946;white-space:nowrap;transition:background 0.15s}
 .logout-btn:hover{background:rgba(230,57,70,0.1); border-color:#E63946;}
 
 /* ── Loading Overlay ── */
@@ -44,14 +44,14 @@ input[type=file]{display:none}
 .form-input{padding:8px 10px; border:1px solid #d3d1c7; border-radius:6px; font-size:12px; width:100%; outline:none; background:#fff;}
 .form-input:focus{border-color:#888780;}
 .form-input:read-only, .form-input:disabled {background-color: #f5f4f0; color: #5f5e5a; cursor: not-allowed; border-color: #e8e6e0;}
-.btn-primary{padding:8px 16px; background:#1D9E75; color:#fff; border:none; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; transition:0.2s;}
+.btn-primary{padding:8px 16px; background:#1D9E75; color:#fff; border:none; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; transition:0.2s; width:100%;}
 .btn-primary:hover{background:#157a5a;}
 
 /* ── Filters ── */
 .filters{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:1.25rem;align-items:center}
-.filters select{font-size:12px;padding:7px 10px;border:1px solid #d3d1c7;border-radius:8px;background:#fff;color:#1a1a18;cursor:pointer;min-width:145px}
+.filters select{font-size:12px;padding:7px 10px;border:1px solid #d3d1c7;border-radius:8px;background:#fff;color:#1a1a18;cursor:pointer;flex:1;min-width:145px}
 .filters select:hover{border-color:#888780}
-.clr-btn{font-size:12px;color:#888780;cursor:pointer;padding:7px 12px;border:1px solid #d3d1c7;border-radius:8px;background:transparent;display:flex;align-items:center;gap:4px}
+.clr-btn{font-size:12px;color:#888780;cursor:pointer;padding:7px 12px;border:1px solid #d3d1c7;border-radius:8px;background:transparent;display:flex;align-items:center;gap:4px;white-space:nowrap}
 .clr-btn:hover{background:#fff;color:#1a1a18}
 
 /* ── Metrics ── */
@@ -63,7 +63,8 @@ input[type=file]{display:none}
 .bt-summary-pills{display:flex;gap:10px}
 .bt-pill{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:4px 12px;font-size:11px;color:rgba(255,255,255,0.7);display:flex;align-items:center;gap:5px}
 .bt-pill b{color:#fff;font-weight:600}
-.bt-table{width:100%;border-collapse:collapse}
+#branch-tracker { overflow-x: auto; width: 100%; } /* Responsive Table Wrapper */
+.bt-table{width:100%;border-collapse:collapse;min-width:600px;} /* Prevent squishing */
 .bt-table thead th{padding:10px 24px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:#888780;border-bottom:1px solid #f1efe8;background:#fafaf8;text-align:left}
 .bt-table thead th:not(:first-child){text-align:center}
 .bt-table tbody tr{border-bottom:1px solid #f5f4f0;transition:background 0.12s}
@@ -149,13 +150,36 @@ table.data-tbl tr:hover td{background:#fafaf8}
 .no-data{text-align:center;padding:40px;color:#b4b2a9;font-size:13px;line-height:1.5}
 .no-data i{font-size:26px;display:block;margin-bottom:8px;color:#d3d1c7}
 
-@media(max-width:900px){
+/* ── Responsive Media Queries ── */
+@media(max-width:1200px){
   .metrics{grid-template-columns:repeat(4,1fr)}
-  .topbar{height:auto;padding:12px 16px}
-  .three-col{grid-template-columns:1fr!important}
 }
 @media(max-width:1100px){
   .three-col{grid-template-columns:1fr 1fr!important}
+}
+@media(max-width:900px){
+  .three-col{grid-template-columns:1fr!important}
+  .metrics{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:768px){
+  .topbar{flex-direction:column; align-items:stretch; height:auto; padding:16px;}
+  .topbar-left {justify-content:center; margin-bottom: 10px;}
+  .topbar-right{flex-direction:column; align-items:stretch; gap:10px;}
+  .clock-block{text-align:center;}
+  .user-input, .upload-btn, .logout-btn {width: 100%; justify-content: center;}
+  .role-display {text-align: center;}
+  .main{padding:1rem;}
+  .bt-card-header{flex-direction:column; align-items:flex-start; gap:12px;}
+  .bt-summary-pills{flex-wrap:wrap;}
+}
+@media(max-width:600px){
+  .metrics{grid-template-columns:repeat(2,1fr)}
+  .form-grid{grid-template-columns:1fr;} /* Stack form inputs */
+  .filters select{width:100%; flex: 100%;}
+  .clr-btn{width:100%; justify-content:center;}
+}
+@media(max-width:400px){
+  .metrics{grid-template-columns:1fr} /* 1 metric per row on tiny screens */
 }
 </style>
 </head>
@@ -228,7 +252,9 @@ table.data-tbl tr:hover td{background:#fafaf8}
           <option value="Pending">
         </datalist>
       </div>
-      <button class="btn-primary" onclick="addManualRecord()">+ Save Record to Cloud</button>
+      <div>
+        <button class="btn-primary" onclick="addManualRecord()">+ Save Record to Cloud</button>
+      </div>
     </div>
 
     <!-- Filters -->
@@ -936,7 +962,6 @@ function groupByQty(data, field) {
     .sort(function(a, b) { return b[1] - a[1]; });
 }
 
-// ── FIXED: Pie Chart Custom Labels Restored ──
 function renderStatus(data){
   var entries=groupByQty(data,'status').filter(function(e){return e[0]!=='Unknown';});
   if(!entries.length) {
@@ -994,7 +1019,6 @@ function renderStatus(data){
   });
 }
 
-// ── FIXED: Date Engineer Push Bug Restored ──
 function renderDateEngineer(data){
   var dates=[...new Set(data.map(function(r){return r.date;}).filter(function(d){return d&&d!=='Unknown';}))].sort(function(a,b){if(a==='Early 25')return-1;if(b==='Early 25')return 1;return a<b?-1:1;});
   var engineers=[...new Set(data.map(function(r){return r.engineer;}).filter(function(e){return e&&e!=='Unknown';}))].sort();
@@ -1024,7 +1048,6 @@ function renderDateEngineer(data){
   document.getElementById('de-table-wrap').innerHTML='<table class="de-table"><thead>'+thead+'</thead><tbody>'+tbody+'</tbody></table>';
 }
 
-// ── RESTORED: Original Bar Chart Engine ──
 function buildStackedStatusChart(canvasId,legendId,groupKey,data,tickSize,maxRotation){
   var statusOrder=['Tested Ok','Non Repairable','Cabinet (No Spare)','Only Cabinet','Component Required','Scrap'];
   var statusSet={};
